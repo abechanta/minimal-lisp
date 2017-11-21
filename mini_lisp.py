@@ -486,10 +486,10 @@ def _reduce_l(f, y: t, x: t) -> t:
     ])
 
 symbol('+').assign(function(lambda x:
-    return _reduce_l(lambda x, y: x + y, number(0), x)
+    _reduce_l(lambda x, y: x + y, number(0), x)
 ))
 symbol('*').assign(function(lambda x:
-    return _reduce_l(lambda x, y: x * y, number(1), x)
+    _reduce_l(lambda x, y: x * y, number(1), x)
 ))
 
 
@@ -499,7 +499,6 @@ def _reduce_l2(f, y: t, x: t) -> t:
         lambda a: ('-e1', _elem_nth(x, 1, t, _reduce_l2.__name__)),
         lambda a: ('rv', f(y.val, a.get('v0').val) if t.iserr(a.get('-e1')) else _reduce_l(f, a.get('v0'), x.cdr)),
     ])
-
 
 symbol('-').assign(function(lambda x:
     _reduce_l2(lambda x, y: x - y, number(0), x)
@@ -515,7 +514,6 @@ symbol('/').assign(function(lambda x:
 
 def _typep_e0(x: t) -> t:
     return _eval_nth(x, 0, _typep_e0.__name__)
-
 
 symbol('atomp').assign(function(lambda x:
     tv if isinstance(_typep_e0(x), atom) else nv
@@ -549,6 +547,10 @@ def _all_of(f, x: t) -> t:
         lambda a: ('rv', nv if not f(a.get('v0')) else _all_of(f, x.cdr) if x.cdr != nv else tv),
     ])
 
+symbol('and').assign(function(lambda x:
+    _all_of(lambda x: x != nv, x)
+))
+
 
 def _any_of(f, x: t) -> t:
     return _exec([
@@ -556,10 +558,6 @@ def _any_of(f, x: t) -> t:
         lambda a: ('rv', tv if f(a.get('v0')) else _any_of(f, x.cdr) if x.cdr != nv else nv),
     ])
 
-
-symbol('and').assign(function(lambda x:
-    _all_of(lambda x: x != nv, x)
-))
 symbol('or').assign(function(lambda x:
     _any_of(lambda x: x != nv, x)
 ))
@@ -570,7 +568,6 @@ def _adjacent_l(f, y: t, x: t) -> t:
         lambda a: ('v0', _eval_nth(x, 0, _adjacent_l.__name__)),
         lambda a: ('rv', nv if y and not f(y, a.get('v0')) else _adjacent_l(f, a.get('v0'), x.cdr) if x.cdr != nv else tv),
     ])
-
 
 symbol('=').assign(function(lambda x:
     _adjacent_l(lambda x, y: x.val == y.val, None, x)
